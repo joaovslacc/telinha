@@ -22,7 +22,7 @@
   var OUTBOX_MAX = 500;
   var FATAL = { 'room-full': 1, 'name-invalid': 1, 'code-invalid': 1, 'signaling-lost': 1 };
   var MESSAGES = {
-    'room-full': 'Esta sala já tem 5 pessoas.',
+    'room-full': 'Esta sala atingiu o limite de pessoas.',
     'name-invalid': 'Nome vazio ou com mais de 24 caracteres.',
     'code-invalid': 'Código precisa ter de 3 a 24 letras, números ou hífen.',
     'share-denied': 'O compartilhamento foi cancelado ou negado.',
@@ -240,6 +240,7 @@
       list.forEach(function (x) { self._addPeer(x.id, x.name, !!x.sharing); });
       this._emit('joined', {
         self: { id: this.self.id, name: this.self.name, sharing: this.self.sharing },
+        max: m.max || 0,
         peers: list.map(function (x) { return { id: x.id, name: x.name, sharing: !!x.sharing }; })
       });
       list.forEach(function (x) { self._ensurePc(x.id, true); });

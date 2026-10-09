@@ -2,7 +2,7 @@
 
 Compartilhar a tela com os amigos sem instalar nada e sem criar conta. Você coloca o nome e o código da sala, entra e compartilha.
 
-- Até **5 pessoas por sala**, e várias podem compartilhar ao mesmo tempo.
+- Salas com várias pessoas, e várias podem compartilhar ao mesmo tempo. Se quiser, dá para definir um limite por sala (`MAX_PEERS`).
 - O vídeo vai **direto de navegador para navegador** (WebRTC P2P) e não passa pelo seu servidor, a não ser quando o TURN precisa retransmitir.
 - É **leve**: HTML, CSS e JS puros, sem framework e sem build. O servidor é Node com uma única dependência (`ws`) e usa ~15 MB de RAM.
 - Pensado para hospedar você mesmo numa VPS pequena (1 vCPU / 1 GB sobra).
@@ -34,7 +34,7 @@ Compartilhar a tela com os amigos sem instalar nada e sem criar conta. Você col
                    servidor Node (server/)
 ```
 
-- **`server/server.js`** serve os arquivos de `public/` e a sinalização em `/ws`. Ele cuida das salas em memória, aplica o limite de 5 e gera uma credencial TURN temporária para cada pessoa.
+- **`server/server.js`** serve os arquivos de `public/` e a sinalização em `/ws`. Ele cuida das salas em memória, aplica o limite de pessoas (se houver) e gera uma credencial TURN temporária para cada pessoa.
 - **`public/client.js`** é a API `window.Telinha`: WebRTC mesh com *perfect negotiation*, reconexão e detecção de relay.
 - **`public/ui.js`** é a interface e só conversa com a API. Para fazer o seu visual, troque os três arquivos da UI. Veja [docs/PROTOCOLO.md](docs/PROTOCOLO.md).
 - **coturn** é o servidor TURN. Sem ele, quem está atrás de NAT duplo, CGNAT, rede corporativa ou 4G muitas vezes não consegue conectar. Para ter o seu próprio servidor, considere o TURN obrigatório.
@@ -110,11 +110,12 @@ Sem `TURN_HOST`/`TURN_SECRET`, o servidor usa só um STUN público, o que basta 
 | `TURN_SECRET` | — | segredo compartilhado com o coturn (`static-auth-secret`) |
 | `TURN_PORT` | `3478` | porta do coturn |
 | `ALLOWED_ORIGINS` | — | lista de origens aceitas no WebSocket |
+| `MAX_PEERS` | `0` | máximo de pessoas por sala (`0` = sem limite) |
 | `PUBLIC_DIR` | `../public` | pasta dos arquivos do site |
 
 ## Limites e escolhas
 
-- **Mesh, não SFU.** Quem compartilha envia uma cópia para cada pessoa, até ~2,5 Mbps cada. Com 4 assistindo, isso dá ~10 Mbps de upload. Por isso o limite de 5: para salas grandes, o caminho é um SFU (LiveKit, mediasoup).
+- **Mesh, não SFU.** Quem compartilha envia uma cópia para cada pessoa, até ~2,5 Mbps cada. Com 4 assistindo, isso dá ~10 Mbps de upload. Não existe trava, mas na prática funciona bem até umas 6–8 pessoas, dependendo do upload de quem compartilha. Use `MAX_PEERS` se quiser limitar. Para salas grandes, o caminho é um SFU (LiveKit, mediasoup).
 - **TURN sem TLS.** O TURN usa `turn:` em UDP/TCP na 3478, sem `turns:` na 443. Redes que só liberam a porta 443 não vão conectar. Para isso é preciso um certificado e `turns:` na configuração do coturn.
 - **Navegadores.** Foi testado no Chrome/Chromium. Firefox e Safari devem funcionar, porque é WebRTC padrão, mas ainda não foram testados a fundo.
 - **Sem áudio.** Só a imagem da tela é compartilhada.

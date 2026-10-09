@@ -17,7 +17,7 @@ const TURN_PORT = Number(process.env.TURN_PORT) || 3478;
 const TURN_TTL = 12 * 3600; // s
 const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || '').split(',').map((s) => s.trim()).filter(Boolean);
 
-const MAX_PEERS = 5;
+const MAX_PEERS = Math.max(0, Number(process.env.MAX_PEERS) || 0); // pessoas por sala; 0 = sem limite
 const MAX_CONNS = 400;
 const MAX_PAYLOAD = 64 * 1024;
 const GRACE_MS = 35000;      // socket caiu sem "leave": segura o lugar (cliente desiste em ~30 s)
@@ -231,11 +231,11 @@ function onJoin(conn, msg) {
       }
       member.name = name;
     } else {
-      if (room && room.size >= MAX_PEERS) return fail(conn, 'room-full');
+      if (room && MAX_PEERS && room.size >= MAX_PEERS) return fail(conn, 'room-full');
       member = { id: r.id, name, sharing: false, conn: null, grace: null, pending: [] };
     }
   } else {
-    if (room && room.size >= MAX_PEERS) return fail(conn, 'room-full');
+    if (room && MAX_PEERS && room.size >= MAX_PEERS) return fail(conn, 'room-full');
     member = { id: newId(room), name, sharing: false, conn: null, grace: null, pending: [] };
   }
 
@@ -252,7 +252,7 @@ function onJoin(conn, msg) {
 
   const peers = [];
   for (const m of room.values()) if (m !== member) peers.push({ id: m.id, name: m.name, sharing: m.sharing });
-  sendJson(conn, { t: 'welcome', id: member.id, peers, ice: iceServers(member.id), token: tokenFor(member.id), resumed, boot: BOOT });
+  sendJson(conn, { t: 'welcome', id: member.id, peers, ice: iceServers(member.id), token: tokenFor(member.id), resumed, boot: BOOT, max: MAX_PEERS });
   if (resumed) {
     const pend = member.pending;
     member.pending = [];

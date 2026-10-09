@@ -5,7 +5,7 @@
   var API = window.Telinha;
   var LS_NAME = 'telinha-name';
   var CODE_RE = /^[a-z0-9-]{3,24}$/;
-  var MAX = 5;
+  var MAX = 0; // limite de pessoas da sala (vem do servidor; 0 = sem limite)
 
   function $(id) { return document.getElementById(id); }
   var el = {
@@ -141,6 +141,7 @@
 
     on('joined', function (p) {
       S.joined = true;
+      MAX = p.max || 0;
       S.people.clear(); S.order = [];
       addPerson({ id: p.self.id, name: p.self.name || name, sharing: false, state: 'self', self: true });
       (p.peers || []).forEach(function (x) { addPerson({ id: x.id, name: x.name, sharing: !!x.sharing, state: 'connecting' }); });
@@ -214,7 +215,7 @@
       if (e.code === 'name-invalid') { fieldError(el.name, el.eName, 'Nome inválido: use de 1 a 24 caracteres.'); el.name.focus(); }
       else if (e.code === 'code-invalid') { fieldError(el.code, el.eCode, 'Código inválido: use de 3 a 24 letras, números ou hífen.'); el.code.focus(); }
       else if (e.code === 'room-full') {
-        formAlert(icon('alert') + '<p><strong>A sala “' + esc(S.code) + '” está cheia.</strong> Ela já tem ' + MAX + ' pessoas. Peça para alguém sair ou crie uma sala nova.</p>' +
+        formAlert(icon('alert') + '<p><strong>A sala “' + esc(S.code) + '” está cheia.</strong> Ela atingiu o limite de pessoas. Peça para alguém sair ou crie uma sala nova.</p>' +
           '<button type="button" class="btn btn-ghost btn-sm" id="btn-newroom">' + icon('shuffle') + 'Criar sala nova</button>');
         var b = $('btn-newroom');
         b.addEventListener('click', function () { el.code.value = API.randomCode(); formAlert(''); el.join.focus(); });
@@ -284,8 +285,9 @@
         setTimeout(function () { li.remove(); }, 160);
       }
     });
-    el.count.textContent = S.people.size + '/' + MAX;
-    el.count.parentNode.setAttribute('aria-label', S.people.size + ' de ' + MAX + ' pessoas na sala');
+    var n = S.people.size;
+    el.count.textContent = MAX ? n + '/' + MAX : String(n);
+    el.count.parentNode.setAttribute('aria-label', MAX ? n + ' de ' + MAX + ' pessoas na sala' : n + (n === 1 ? ' pessoa' : ' pessoas') + ' na sala');
   }
 
   /* ---------------- telas ---------------- */
@@ -379,7 +381,7 @@
       el.emptyActions.innerHTML = alone ? inviteHTML() : '';
     } else if (alone) {
       el.emptyTitle.textContent = 'Você é o primeiro aqui';
-      el.emptyText.textContent = 'Mande o link para quem vai entrar. Cabem até ' + MAX + ' pessoas na sala.';
+      el.emptyText.textContent = 'Mande o link para quem vai entrar.' + (MAX ? ' Cabem até ' + MAX + ' pessoas na sala.' : '');
       el.emptyActions.innerHTML = inviteHTML();
     } else {
       el.emptyTitle.textContent = 'Ninguém está compartilhando';

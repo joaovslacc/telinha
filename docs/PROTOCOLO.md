@@ -3,7 +3,7 @@
 A UI (`public/ui.js`) só conversa com a API `window.Telinha`, implementada em `public/client.js`.
 Quer trocar o visual? Reescreva `index.html`/`style.css`/`ui.js` usando só a API abaixo e o resto continua funcionando.
 
-Arquitetura: mesh P2P WebRTC (um `RTCPeerConnection` por par, máx. **5 pessoas por sala**), sinalização por
+Arquitetura: mesh P2P WebRTC (um `RTCPeerConnection` por par; limite de pessoas por sala opcional via `MAX_PEERS`), sinalização por
 WebSocket em `/ws` e TURN (coturn) para quem está atrás de NAT difícil.
 
 ## API do cliente no navegador (`window.Telinha`)
@@ -25,7 +25,7 @@ room.peers               // Map<id, { id, name, sharing, state }>
 
 | evento | payload | quando |
 |---|---|---|
-| `joined` | `{ self, peers: [{id,name,sharing}] }` | entrou na sala |
+| `joined` | `{ self, peers: [{id,name,sharing}], max }` (`max` = limite da sala, 0 = sem limite) | entrou na sala |
 | `peer-joined` | `{ id, name }` | alguém entrou |
 | `peer-left` | `{ id, name }` | alguém saiu |
 | `share-changed` | `{ id, sharing }` | alguém (inclusive eu) começou/parou de compartilhar |
@@ -38,7 +38,7 @@ room.peers               // Map<id, { id, name, sharing, state }>
 
 ### Códigos de erro
 
-- `room-full` — sala já tem 5 (fatal: não entrou)
+- `room-full` — sala atingiu `MAX_PEERS` (fatal: não entrou; só existe se o limite estiver ligado)
 - `name-invalid` — nome vazio / > 24 chars (fatal)
 - `code-invalid` — código fora de `^[a-z0-9-]{3,24}$` (fatal)
 - `share-denied` — usuário cancelou/negou o seletor de tela (não fatal, rejeição de `startShare`)
@@ -60,7 +60,7 @@ Campo opcional de `join`: `resume: { id, token }` — ao reconectar depois de um
 mesmo id (o vídeo dos outros não cai). `token` vem do `welcome`.
 
 servidor → cliente
-- `{ t:"welcome", id, peers:[{id,name,sharing}], ice:[RTCIceServer...], token, resumed, boot }`
+- `{ t:"welcome", id, peers:[{id,name,sharing}], ice:[RTCIceServer...], token, resumed, boot, max }`
   (`ice` com credencial TURN efêmera; `resumed` = voltou com o mesmo id; `boot` muda quando o servidor reinicia)
 - `{ t:"peer-joined", id, name }` / `{ t:"peer-left", id }`
 - `{ t:"signal", from, data }`

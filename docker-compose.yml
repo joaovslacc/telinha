@@ -22,6 +22,7 @@ services:
       TURN_HOST: ${PUBLIC_IP:?defina PUBLIC_IP no .env}
       TURN_PORT: "3478"
       ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-}
+      MAX_PEERS: ${MAX_PEERS:-0}
     read_only: true
     cap_drop: [ALL]
     security_opt: ["no-new-privileges:true"]
