@@ -20,7 +20,8 @@ Compartilhar a tela com os amigos sem instalar nada e sem criar conta. Você col
 - Gerar um código de sala ou digitar um, e mandar o link `https://seu-dominio/?sala=codigo` para os outros.
 - Compartilhar a tela, uma janela ou uma aba, vendo uma prévia do que está saindo, e parar quando quiser.
 - Com uma tela compartilhada, ela ocupa o palco. Com várias, aparecem em grade e um clique destaca uma.
-- Ver qualquer tela em tela cheia, a lista de quem está na sala e o estado da conexão de cada um.
+- **Expandir** (botão ou tecla `E`): esconde a lista de pessoas e a tela ocupa a página toda, sem entrar no fullscreen do navegador. Também dá para usar a tela cheia de verdade.
+- Ver a lista de quem está na sala e o estado da conexão de cada um.
 - No celular só dá pra assistir: o navegador do celular não permite compartilhar a tela.
 - Se a conexão cair, o site reconecta sozinho, e você volta para a mesma sala sem derrubar o vídeo dos outros.
 

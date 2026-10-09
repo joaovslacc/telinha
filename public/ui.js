@@ -14,7 +14,7 @@
     eName: $('e-name'), eCode: $('e-code'), alert: $('form-alert'), lobbyMobile: $('lobby-mobile'),
     rCode: $('r-code'), copy: $('btn-copy'), count: $('r-count'), banner: $('banner'),
     stage: $('stage'), tiles: $('tiles'), emptyTitle: $('empty-title'), emptyText: $('empty-text'), emptyActions: $('empty-actions'),
-    share: $('btn-share'), all: $('btn-all'), fs: $('btn-fs'), leave: $('btn-leave'), shareNote: $('share-note'),
+    share: $('btn-share'), all: $('btn-all'), fs: $('btn-fs'), wide: $('btn-wide'), leave: $('btn-leave'), shareNote: $('share-note'),
     people: $('people'), preview: $('preview'), previewVideo: $('preview-video'), stop: $('btn-stop'),
     fatalTitle: $('fatal-title'), fatalText: $('fatal-text'), retry: $('btn-retry'), home: $('btn-home'),
     toasts: $('toasts')
@@ -25,6 +25,8 @@
     stop: '<rect width="20" height="14" x="2" y="3" rx="2"/><path d="M12 17v4"/><path d="M8 21h8"/><path d="m14.5 7.5-5 5"/><path d="m9.5 7.5 5 5"/>',
     monitor: '<rect width="20" height="14" x="2" y="3" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/>',
     max: '<path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/>',
+    panelClose: '<rect width="18" height="18" x="3" y="3" rx="2"/><path d="M15 3v18"/><path d="m8 9 3 3-3 3"/>',
+    panelOpen: '<rect width="18" height="18" x="3" y="3" rx="2"/><path d="M15 3v18"/><path d="m10 15-3-3 3-3"/>',
     min: '<path d="M8 3v3a2 2 0 0 1-2 2H3"/><path d="M21 8h-3a2 2 0 0 1-2-2V3"/><path d="M3 16h3a2 2 0 0 1 2 2v3"/><path d="M16 21v-3a2 2 0 0 1 2-2h3"/>',
     link: '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>',
     copy: '<rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>',
@@ -495,6 +497,18 @@
   });
   el.all.addEventListener('click', function () { setFocus(null); });
 
+  /* ---------------- expandir (esconde a faixa lateral, sem fullscreen) ---------------- */
+  var LS_WIDE = 'telinha-wide';
+  function setWide(on) {
+    el.room.classList.toggle('is-wide', on);
+    el.wide.setAttribute('aria-pressed', String(on));
+    el.wide.title = on ? 'Mostrar a lista de pessoas (atalho: E)' : 'Esconder a lista de pessoas e aumentar a tela (atalho: E)';
+    el.wide.innerHTML = icon(on ? 'panelOpen' : 'panelClose') + '<span class="btn-label">' + (on ? 'Mostrar pessoas' : 'Expandir') + '</span>';
+    try { localStorage.setItem(LS_WIDE, on ? '1' : ''); } catch (e) { /* ok */ }
+  }
+  try { if (localStorage.getItem(LS_WIDE)) setWide(true); } catch (e) { /* ok */ }
+  el.wide.addEventListener('click', function () { setWide(!el.room.classList.contains('is-wide')); });
+
   /* ---------------- sair ---------------- */
   el.leave.addEventListener('click', function () {
     teardown();
@@ -509,6 +523,7 @@
   document.addEventListener('keydown', function (e) {
     if (el.room.hidden || e.target.matches('input, textarea')) return;
     if (e.key === 'Escape' && S.focus && !document.fullscreenElement) setFocus(null);
+    if ((e.key === 'e' || e.key === 'E') && !e.ctrlKey && !e.metaKey && !e.altKey && !e.target.isContentEditable) setWide(!el.room.classList.contains('is-wide'));
   });
   window.addEventListener('pagehide', function () { if (S.room) S.room.leave(); });
 
