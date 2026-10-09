@@ -1,0 +1,6 @@
+# Usado só com:  docker compose --profile https up -d
+# O Caddy pega o certificado HTTPS sozinho (Let's Encrypt). Precisa das portas 80 e 443 livres.
+{$DOMAIN} {
+	encode gzip
+	reverse_proxy 127.0.0.1:{$PORT}
+}

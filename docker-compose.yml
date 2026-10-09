@@ -1,0 +1,64 @@
+# telinha: site + sinalização (Node) e TURN (coturn).
+#   cp .env.example .env   # preencha DOMAIN, PUBLIC_IP e TURN_SECRET
+#   docker compose up -d --build                    # se você já tem proxy HTTPS (nginx, Cloudflare Tunnel...)
+#   docker compose --profile https up -d --build    # ou: sobe também um Caddy com HTTPS automático
+name: telinha
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "1m"
+    max-file: "3"
+
+services:
+  web:
+    build: .
+    image: telinha:latest
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${PORT:-3004}:3004"
+    environment:
+      TURN_SECRET: ${TURN_SECRET:?defina TURN_SECRET no .env}
+      TURN_HOST: ${PUBLIC_IP:?defina PUBLIC_IP no .env}
+      TURN_PORT: "3478"
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-}
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    mem_limit: 128m
+    logging: *logging
+
+  coturn:
+    image: coturn/coturn:4.18-alpine
+    restart: unless-stopped
+    network_mode: host
+    volumes:
+      - ./turnserver.conf:/etc/coturn/turnserver.conf:ro
+    command:
+      - -c
+      - /etc/coturn/turnserver.conf
+      - --external-ip=${PUBLIC_IP:?defina PUBLIC_IP no .env}
+      - --realm=${DOMAIN:?defina DOMAIN no .env}
+      - --static-auth-secret=${TURN_SECRET:?defina TURN_SECRET no .env}
+    tmpfs:
+      - /var/tmp
+    mem_limit: 128m
+    logging: *logging
+
+  caddy:
+    image: caddy:2-alpine
+    profiles: ["https"]
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      DOMAIN: ${DOMAIN}
+      PORT: ${PORT:-3004}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    logging: *logging
+
+volumes:
+  caddy-data:
+  caddy-config:
